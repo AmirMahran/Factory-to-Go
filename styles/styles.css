@@ -1,0 +1,122 @@
+/* Algemene stijlen */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #e0f7fa; /* Light blue background color */
+}
+
+/* Header Styles */
+header {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#logo {
+    max-width: 150px;
+    height: auto;
+}
+
+h1 {
+    color: #00796b; /* Teal color for the title */
+}
+
+/* Container for layout */
+.container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Knoppen en sliders aan de linkerkant */
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    max-width: 250px;
+    background-color: #ffffff; /* White background for controls */
+    border: 2px solid #00796b; /* Teal border for the controls */
+    border-radius: 12px; /* Rounded corners */
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for a 3D effect */
+}
+
+/* Knoppen stijlen */
+button {
+    background-color: #00796b; /* Teal background for buttons */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: #004d40; /* Darker teal for button hover */
+}
+
+button:active {
+    background-color: #00332e; /* Even darker teal for button active */
+}
+
+/* Canvas container */
+.simulation {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff; /* White background for the canvas */
+    border: 2px solid #00796b; /* Teal border for the canvas */
+    border-radius: 12px; /* Rounded corners */
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for a 3D effect */
+}
+
+/* Responsieve stijlen */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .controls {
+        align-items: center;
+        max-width: 100%; /* Full width on small screens */
+    }
+    .simulation {
+        width: 100%;
+        max-width: 600px; /* Adjusted max width on small screens */
+    }
+}
+
+/* Controls and Canvas Elements */
+label {
+    margin: 5px 0;
+    color: #00796b; /* Teal color for labels */
+}
+
+input[type="number"] {
+    margin-bottom: 10px;
+    width: 80px;
+    padding: 5px;
+    border: 1px solid #00796b; /* Teal border for inputs */
+    border-radius: 4px;
+}
+
+/* Canvas Styles */
+#simCanvas {
+    max-width: 100%;
+    border: none;
+}

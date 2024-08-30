@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemonade Mixer Simulation</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="icon" href="img/lemonade.png" type="image/icon type">
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <h2>Controls</h2>
+<!-- Inputs voor smaken en water -->
+<label for="flavor1">Flavor 1 (%):</label>
+<input id="flavor1" type="range" min="0" max="100" value="0">
+
+<label for="flavor2">Flavor 2 (%):</label>
+<input id="flavor2" type="range" min="0" max="100" value="0">
+
+<label for="water">Water (%):</label>
+<input id="water" type="number" min="0" max="100" value="0" >
+
+            <button id="startButton">Start</button>
+            <button id="stopButton">Stop</button>
+            <button id="resetButton">Reset</button>
+        </div>
+        <div class="simulation">
+            <canvas id="simCanvas" width="650" height="950"></canvas>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
