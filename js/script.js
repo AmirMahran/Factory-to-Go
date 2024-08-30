@@ -1,8 +1,8 @@
-// Canvas en context initialiseren
+// Canvas and context initialization
 const canvas = document.getElementById('simCanvas');
 const ctx = canvas.getContext('2d');
 
-// Controle elementen selecteren
+// Control elements
 const flavor1Input = document.getElementById('flavor1');
 const flavor2Input = document.getElementById('flavor2');
 const waterInput = document.getElementById('water');
@@ -10,101 +10,115 @@ const startButton = document.getElementById('startButton');
 const stopButton = document.getElementById('stopButton');
 const resetButton = document.getElementById('resetButton');
 
-// Simulatie variabelen
+// Percentage display elements
+const flavor1ValueSpan = document.getElementById('flavor1Value');
+const flavor2ValueSpan = document.getElementById('flavor2Value');
+const waterValueSpan = document.getElementById('waterValue');
+
+// Simulation variables
 let isMixing = false;
 let animationFrameId;
 
-// Canvas afmetingen
+// Canvas dimensions
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 
-// Tank objecten definiëren
+// Tank class definition
 class Tank {
-    constructor(x, y, width, height, color, name, level = 0, hasWindow = false) {
+    constructor(x, y, width, height, name, level = 0, colors = [], hasWindow = false) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.color = color;
-        this.name = name; // Naam van de tank
-        this.level = level; // in percentages (0-100)
-        this.targetLevel = level; // Het doelniveau voor animatie
+        this.name = name;
+        this.level = level;
+        this.targetLevel = level;
+        this.colors = colors;
         this.hasWindow = hasWindow;
     }
 
     draw() {
-        // Teken de tank
+        // Draw the tank
         ctx.strokeStyle = '#555';
         ctx.lineWidth = 2;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
 
-        // Teken de vloeistof
-        const liquidHeight = (this.level / 100) * this.height;
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y + this.height - liquidHeight, this.width, liquidHeight);
+        // Draw liquid bands
+        let currentHeight = this.y + this.height;
+        const totalHeight = (this.level / 100) * this.height;
 
-        // Teken het kijkvenster als dat nodig is
+        if (this.colors.length > 0) {
+            this.colors.forEach(({ color, percentage }) => {
+                const segmentHeight = (percentage / 100) * totalHeight;
+                ctx.fillStyle = color;
+                ctx.fillRect(this.x, currentHeight - segmentHeight, this.width, segmentHeight);
+                currentHeight -= segmentHeight;
+            });
+        } else {
+            ctx.fillStyle = '#FFFFFF'; // Default color if no colors
+            ctx.fillRect(this.x, currentHeight - totalHeight, this.width, totalHeight);
+        }
+
+        // Draw window and status light
         if (this.hasWindow) {
             ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.strokeRect(this.x + 10, this.y + 10, this.width - 20, this.height - 20);
         }
 
-        // Teken een lampje om de status aan te geven
         ctx.fillStyle = this.level > 0 ? 'green' : 'red';
         ctx.beginPath();
         ctx.arc(this.x + this.width / 2, this.y - 15, 10, 0, Math.PI * 2);
         ctx.fill();
 
-        // Teken de naam in het midden van de tank
-        ctx.fillStyle = '#000'; // Tekstkleur
+        ctx.fillStyle = '#000';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = '16px Arial';
         ctx.fillText(this.name, this.x + this.width / 2, this.y + this.height / 2);
     }
 
-    // Niveau langzaam naar doelniveau brengen
     updateLevel() {
         if (this.level < this.targetLevel) {
-            this.level += 1; // Verhoog het vloeistofniveau in stappen
+            this.level += 1;
         }
     }
 }
 
-// Tanks initialiseren
+// Initialize tanks
 const tankWidth = 150;
 const tankHeight = 300;
-const tank1 = new Tank(50, 50, tankWidth, tankHeight, 'orange', 'Flavor 1', 100); // Smaak 1
-const tank2 = new Tank(250, 50, tankWidth, tankHeight, 'red', 'Flavor 2', 100);   // Smaak 2
-const tank3 = new Tank(450, 50, tankWidth, tankHeight, 'lightblue', 'Water', 100); // Water
+const tank1 = new Tank(50, 50, tankWidth, tankHeight, 'Flavor 1', 100, [{ color: '#FFA500', percentage: 100 }], false); // Flavor 1
+const tank2 = new Tank(250, 50, tankWidth, tankHeight, 'Flavor 2', 100, [{ color: '#FF0000', percentage: 100 }], false); // Flavor 2
+const tank3 = new Tank(450, 50, tankWidth, tankHeight, 'Water', 100, [{ color: '#ADD8E6', percentage: 100 }], false); // Water
 
-// Center de tank 4 onder de andere tanks
+// Center the mixed tank below the others
 const tank4 = new Tank(
-    (canvasWidth - tankWidth) / 2, // Horizontaal gecentreerd
-    (canvasHeight - tankHeight) / 2 + tankHeight, // Direct onder de andere tanks
+    (canvasWidth - tankWidth) / 2, 
+    (canvasHeight - tankHeight) / 2 + tankHeight,
     tankWidth,
     tankHeight,
-    'yellow',
     'Mixed',
     0,
+    [], 
     true
 );
 
-// Pijpen coördinaten definiëren
+// Pipe coordinates
 const pipes = [
-    { from: tank1, to: tank4, color: 'orange', flowPosition: 0 },
-    { from: tank2, to: tank4, color: 'red', flowPosition: 0 },
-    { from: tank3, to: tank4, color: 'lightblue', flowPosition: 0 }
+    { from: tank1, to: tank4, color: '#FFA500', flowPosition: 0 },
+    { from: tank2, to: tank4, color: '#FF0000', flowPosition: 0 },
+    { from: tank3, to: tank4, color: '#ADD8E6', flowPosition: 0 }
 ];
 
-// Event listeners voor controle elementen
+// Event listeners for control elements
 flavor1Input.addEventListener('input', updateWaterPercentage);
 flavor2Input.addEventListener('input', updateWaterPercentage);
+waterInput.addEventListener('input', updateWaterPercentage);
 startButton.addEventListener('click', startMixing);
 stopButton.addEventListener('click', stopMixing);
 resetButton.addEventListener('click', resetSimulation);
 
-// Water percentage bijwerken op basis van de andere smaken
+// Update water percentage and slider values
 function updateWaterPercentage() {
     let flavor1Value = parseInt(flavor1Input.value) || 0;
     let flavor2Value = parseInt(flavor2Input.value) || 0;
@@ -114,9 +128,16 @@ function updateWaterPercentage() {
         flavor1Input.value = 100 - flavor2Value;
     }
     waterInput.value = waterValue;
+
+    // Update percentage displays
+    flavor1ValueSpan.textContent = `${flavor1Value}%`;
+    flavor2ValueSpan.textContent = `${flavor2Value}%`;
+    waterValueSpan.textContent = `${waterValue}%`;
+
+    mix();
 }
 
-// Start het mengproces
+// Start mixing process
 function startMixing() {
     if (!isMixing) {
         isMixing = true;
@@ -124,7 +145,7 @@ function startMixing() {
     }
 }
 
-// Stop het mengproces
+// Stop mixing process
 function stopMixing() {
     if (isMixing) {
         isMixing = false;
@@ -132,140 +153,117 @@ function stopMixing() {
     }
 }
 
-// Reset de simulatie
+// Reset simulation
 function resetSimulation() {
     stopMixing();
+    tank1.level = 0;
+    tank2.level = 0;
+    tank3.level = 0;
     tank4.level = 0;
     tank4.targetLevel = 0;
+    tank4.colors = [];
     draw();
 }
 
-// Kleur mengen
-function mixColors(colors) {
-    let r = 0, g = 0, b = 0;
-
-    colors.forEach(color => {
-        const [colorR, colorG, colorB] = hexToRgb(color);
-        r += colorR;
-        g += colorG;
-        b += colorB;
-    });
-
-    r = Math.round(r / colors.length);
-    g = Math.round(g / colors.length);
-    b = Math.round(b / colors.length);
-
-    return `rgb(${r}, ${g}, ${b})`;
-}
-
-// Hex naar RGB converteren
-function hexToRgb(hex) {
-    let r = 0, g = 0, b = 0;
-
-    // 3 hex getallen
-    if (hex.length === 4) {
-        r = parseInt(hex[1] + hex[1], 16);
-        g = parseInt(hex[2] + hex[2], 16);
-        b = parseInt(hex[3] + hex[3], 16);
-
-    // 6 hex getallen
-    } else if (hex.length === 7) {
-        r = parseInt(hex[1] + hex[2], 16);
-        g = parseInt(hex[3] + hex[4], 16);
-        b = parseInt(hex[5] + hex[6], 16);
-    }
-
-    return [r, g, b];
-}
-
-// Het mengproces simuleren
+// Mix colors based on the flavors
 function mix() {
     let flavor1Value = parseInt(flavor1Input.value);
     let flavor2Value = parseInt(flavor2Input.value);
     let waterValue = parseInt(waterInput.value);
 
-    let totalValue = flavor1Value + flavor2Value + waterValue;
-    if (totalValue > 100) {
-        totalValue = 100;
-    }
-    
-    // Stel het doelniveau in voor de mengtank
-    tank4.targetLevel = totalValue; // Het doel is nu het totaal van de percentages
+    // Total percentage
+    const totalValue = flavor1Value + flavor2Value + waterValue;
 
-    // Meng de kleuren op basis van de vloeistoffen
+    // Update tank levels
+    tank1.targetLevel = flavor1Value;
+    tank2.targetLevel = flavor2Value;
+    tank3.targetLevel = waterValue;
+
+    if (totalValue > 0) {
+        tank4.targetLevel = 100;
+    } else {
+        tank4.targetLevel = 0;
+    }
+
+    // Set colors for the mixed tank
     let colors = [];
-    if (flavor1Value > 0) colors.push('#FFA500'); // Orange
-    if (flavor2Value > 0) colors.push('#FF0000'); // Red
-    if (waterValue > 0) colors.push('#ADD8E6'); // Lightblue
-    
-    tank4.color = mixColors(colors);
+    if (flavor1Value > 0) colors.push({ color: '#FFA500', percentage: flavor1Value });
+    if (flavor2Value > 0) colors.push({ color: '#FF0000', percentage: flavor2Value });
+    if (waterValue > 0) colors.push({ color: '#ADD8E6', percentage: waterValue });
+
+    // Normalize percentages to sum to 100
+    const totalPercentage = colors.reduce((sum, color) => sum + color.percentage, 0);
+    if (totalPercentage > 0) {
+        colors.forEach(color => {
+            color.percentage = (color.percentage / totalPercentage) * 100;
+        });
+    }
+
+    tank4.colors = colors;
 }
 
-// Pijpen tekenen met animatie
+// Draw pipes with animation
 function drawPipes() {
     pipes.forEach(pipe => {
-        // Teken de pijpen onder de tanks
+        // Draw the pipes beneath the tanks
         ctx.strokeStyle = isMixing ? 'rgba(255, 255, 0, 0.8)' : pipe.color;
         ctx.lineWidth = 10;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        // Beginpunt van de pijp
+        // Pipe start point
         const fromX = pipe.from.x + pipe.from.width / 2;
         const fromY = pipe.from.y + pipe.from.height;
-        // Eindpunt van de pijp
+        // Pipe end point
         const toX = pipe.to.x + pipe.to.width / 2;
         const toY = pipe.to.y;
 
-        // Teken rechte lijn voor pijp
+        // Draw straight line for pipe
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(toX, toY);
         ctx.stroke();
 
-        // Vloeistofstroom animeren
+        // Animate liquid flow
         if (isMixing) {
             pipe.flowPosition += 5;
             if (pipe.flowPosition > Math.hypot(toX - fromX, toY - fromY)) {
                 pipe.flowPosition = 0;
             }
 
-            // Teken bewegende stipjes voor vloeistofstroom
-            ctx.fillStyle = pipe.color;
-            const flowProgress = pipe.flowPosition;
+            // Draw liquid flowing
+            ctx.strokeStyle = pipe.color;
+            ctx.lineWidth = 10;
             ctx.beginPath();
-            ctx.arc(fromX + (toX - fromX) * flowProgress / Math.hypot(toX - fromX, toY - fromY), 
-                    fromY - (fromY - toY) * flowProgress / Math.hypot(toX - fromX, toY - fromY), 
-                    5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(fromX + (pipe.flowPosition * (toX - fromX) / Math.hypot(toX - fromX, toY - fromY)),
+                       fromY + (pipe.flowPosition * (toY - fromY) / Math.hypot(toX - fromX, toY - fromY)));
+            ctx.stroke();
         }
     });
 }
 
-// Hoofd tekenfunctie
+// Draw function
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Eerst de pijpen tekenen
-    drawPipes();
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // Daarna de tanks tekenen zodat ze bovenop de pijpen liggen
+    // Draw tanks
     tank1.draw();
     tank2.draw();
     tank3.draw();
-    
-    // Teken tank 4 als laatste zodat deze onder de andere tanks blijft
-    tank4.updateLevel(); // Niveau bijwerken voordat de tank wordt getekend
     tank4.draw();
+
+    // Draw pipes
+    drawPipes();
 }
 
-// Animatiefunctie
+// Animation loop
 function animate() {
     if (isMixing) {
-        mix();
+        mix(); // Mix the colors
+        tank4.updateLevel();
         draw();
         animationFrameId = requestAnimationFrame(animate);
     }
 }
 
-// Initiële weergave
-updateWaterPercentage();
+// Initial draw
 draw();
