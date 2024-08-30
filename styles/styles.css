@@ -51,6 +51,12 @@ h1 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for a 3D effect */
 }
 
+.inputs, .buttons {
+    display: flex;
+    flex-direction: column;
+}
+
+
 /* Knoppen stijlen */
 button {
     background-color: #00796b; /* Teal background for buttons */
@@ -95,8 +101,15 @@ button:active {
         align-items: center;
         max-width: 100%; /* Full width on small screens */
     }
+    .inputs {
+        flex-direction: column;
+    }
+    .buttons {
+        flex-direction: row;
+        gap: 5px;
+    }
     .simulation {
-        width: 100%;
+        width: calc(100% - 20px);
         max-width: 600px; /* Adjusted max width on small screens */
     }
 }
